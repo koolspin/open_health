@@ -7,10 +7,13 @@ app.config.from_mapping(
         DATABASE=os.path.join(app.instance_path, 'open_health.db'),
     )
 
-from . import auth
-app.register_blueprint(auth.bp)
 from . import db
 db.init_app(app)
+from . import auth
+app.register_blueprint(auth.bp)
+from . import health
+app.register_blueprint(health.bp)
+app.add_url_rule('/', endpoint='index')
 
 
 @app.route('/')
