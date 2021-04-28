@@ -1,9 +1,25 @@
+DROP TABLE IF EXISTS activity_summary;
+DROP TABLE IF EXISTS activity_sum;
+DROP TABLE IF EXISTS activity_record;
+DROP TABLE IF EXISTS activity;
+DROP TABLE IF EXISTS user;
+
+create table user
+(
+    id       integer not null
+        constraint user_pk
+            primary key autoincrement,
+    username varchar not null,
+    password varchar not null
+);
+
 create table activity
 (
     id                integer  not null
         constraint activity_pk
             primary key autoincrement,
-    user_id           integer  not null,
+    user_id           integer  not null
+        references user,
     activity_date     datetime not null,
     device_mfgr       varchar,
     device_model      varchar,
@@ -27,6 +43,20 @@ create table activity_record
     speed       real,
     temperature real
 );
+
+create table activity_sum
+(
+    id            integer not null
+        constraint activity_sum_pk
+            primary key autoincrement,
+    activity_id   integer not null
+        references activity,
+    summary_key   varchar not null,
+    summary_value varchar
+);
+
+create unique index activity_sum_activity_id_summary_key_uindex
+    on activity_sum (activity_id, summary_key);
 
 create table activity_summary
 (
@@ -57,19 +87,7 @@ create table activity_summary
     total_anaerobic_training_effect real
 );
 
-create table sqlite_master
-(
-    type     text,
-    name     text,
-    tbl_name text,
-    rootpage integer,
-    sql      text
-);
-
-create table sqlite_sequence
-(
-    name,
-    seq
-);
+create unique index user_username_uindex
+    on user (username);
 
 
