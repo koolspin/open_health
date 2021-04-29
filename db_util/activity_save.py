@@ -1,7 +1,8 @@
 # TODO: For the future - dataclasses from Python 3.7, SQLAlchemy
+from datetime import datetime
 import sqlite3
 #from db import get_db
-from db_util.activity_models import ActivityData, ActivityRecord
+from db_util.activity_models import ActivityData, ActivityRecord, ActivitySum
 
 
 class ActivitySave:
@@ -16,7 +17,6 @@ class ActivitySave:
         activity_insert = "insert into activity (user_id, activity_date, device_mfgr, device_model, activity_type, activity_sub_type) values(?, ?, ?, ?, ?, ?)"
         cur = self._db.cursor()
         cur.execute(activity_insert, (act.user_id, act.activity_date, act.device_mfgr, act.device_model, act.activity_type, act.activity_sub_type))
-        print(cur.lastrowid)
         act.id = cur.lastrowid
         cur.close()
         self._db.commit()
@@ -25,12 +25,29 @@ class ActivitySave:
         activity_record_insert = "insert into activity_record (activity_id, timestamp, lat, long, heart_rate, distance, altitude, speed, temperature) values(?, ?, ?, ?, ?, ?, ?, ?, ?)"
         cur = self._db.cursor()
         cur.execute(activity_record_insert, (act_rec.activity_id, act_rec.timestamp, act_rec.lat, act_rec.long, act_rec.heart_rate, act_rec.distance, act_rec.altitude, act_rec.speed, act_rec.temperature))
-        print(cur.lastrowid)
         cur.close()
         self._db.commit()
 
-    def save_acvitity_sum(self, act: ActivityData) -> None:
-        pass
+    def save_activity_sum(self, act_sum: ActivitySum) -> None:
+        activity_sum_insert = "insert into activity_sum (activity_id, summary_key, summary_value, summary_value_int, summary_value_real, summary_value_date) values(?, ?, ?, ?, ?, ?)"
+        cur = self._db.cursor()
+        for key, value in act_sum.kvps.items():
+            str_val = None
+            int_val = None
+            real_val = None
+            date_val = None
+            if value is not None:
+                if isinstance(value, int):
+                    int_val = value
+                elif isinstance(value, float):
+                    real_val = value
+                elif isinstance(value, datetime):
+                    date_val = value
+                else:
+                    str_val = str(value)
+                cur.execute(activity_sum_insert, (act_sum.activity_id, key, str_val, int_val, real_val, date_val))
+        cur.close()
+        self._db.commit()
 
     def close(self) -> None:
         self._db.close()

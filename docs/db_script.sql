@@ -1,9 +1,3 @@
-DROP TABLE IF EXISTS activity_summary;
-DROP TABLE IF EXISTS activity_sum;
-DROP TABLE IF EXISTS activity_record;
-DROP TABLE IF EXISTS activity;
-DROP TABLE IF EXISTS user;
-
 create table user
 (
     id       integer not null
@@ -46,13 +40,16 @@ create table activity_record
 
 create table activity_sum
 (
-    id            integer not null
+    id                 integer not null
         constraint activity_sum_pk
             primary key autoincrement,
-    activity_id   integer not null
+    activity_id        integer not null
         references activity,
-    summary_key   varchar not null,
-    summary_value varchar
+    summary_key        varchar not null,
+    summary_value      varchar,
+    summary_value_int  integer,
+    summary_value_real real,
+    summary_value_date datetime
 );
 
 create unique index activity_sum_activity_id_summary_key_uindex

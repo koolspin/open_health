@@ -1,12 +1,15 @@
 import fitdecode
 
-from db_util.activity_models import ActivityRecord, ActivityData
+from db_util.activity_models import ActivityRecord, ActivityData, ActivitySum
 
 
 class FitHandler:
     """
     Handler for the .fit format used by Garmin
     """
+    # Garmin stores lat long in a 32 bit int. 2^32 / 360 = 11930464.7111, which is the constant defined below
+    GARMIN_LOC_DIVISOR = 11930464.7111
+
     def __init__(self, source_file, db_persistence) -> None:
         super().__init__()
         self._source_file = source_file
@@ -37,22 +40,11 @@ class FitHandler:
                             self.handle_sport(frame)
                         if frame.mesg_type.name == "record":
                             self.handle_record(frame)
-
-                    # if frame.has_field('manufacturer'):
-                    #     print('Manufacturer: {0}'.format(frame.get_value('manufacturer')))
-                    # if frame.has_field('garmin_product'):
-                    #     print('Garmin Product: {0}'.format(frame.get_value('garmin_product')))
-                    # if frame.has_field('serial_number'):
-                    #     print('Serial NUmber: {0}'.format(frame.get_value('serial_number')))
-                    # if frame.has_field('time_created'):
-                    #     print('Time Created: {0}'.format(frame.get_value('time_created')))
-                    # if frame.has_field('speed'):
-                    #     print('Speed: {0}'.format(frame.get_value('speed')))
-                    # if frame.has_field('heart_rate'):
-                    #     print('HR: {0}'.format(frame.get_value('heart_rate')))
-                    for field in frame.fields:
-                        if isinstance(field, fitdecode.types.FieldData):
-                            print('FitDataMessage, K, V: {0}, {1}'.format(field.name, field.value))
+                        if frame.mesg_type.name == "session":
+                            self.handle_session(frame)
+                    # for field in frame.fields:
+                    #     if isinstance(field, fitdecode.types.FieldData):
+                    #         print('FitDataMessage, K, V: {0}, {1}'.format(field.name, field.value))
                 if isinstance(frame, fitdecode.records.FitDefinitionMessage):
                     print("FitDefinitionMessage: {0}".format(frame.name))
                     print("Def Global Msg Num: {0}".format(frame.global_mesg_num))
@@ -81,11 +73,24 @@ class FitHandler:
         act_rec = ActivityRecord()
         act_rec.activity_id = self._activity_id
         act_rec.timestamp = f.get_value("timestamp")
-        act_rec.lat = f.get_value("position_lat")
-        act_rec.long = f.get_value("position_long")
+        # Note we limit the precision on lat / long to 5 digits. 5 digits give 1m accuracy at the equator
+        # This is good enough for our purposes.
+        fit_lat = f.get_value("position_lat")
+        act_rec.lat = round(fit_lat / FitHandler.GARMIN_LOC_DIVISOR, 5)
+        fit_long = f.get_value("position_long")
+        act_rec.long = round(fit_long / FitHandler.GARMIN_LOC_DIVISOR, 5)
+        #
         act_rec.heart_rate = f.get_value("heart_rate")
         act_rec.distance = f.get_value("distance")
         act_rec.altitude = f.get_value("enhanced_altitude")
         act_rec.speed = f.get_value("enhanced_speed")
         act_rec.temperature = f.get_value("temperature")
         self._db_persistence.save_acvitity_record(act_rec)
+
+    def handle_session(self, f) -> None:
+        act_sum = ActivitySum()
+        act_sum.activity_id = self._activity_id
+        for key in act_sum.keys:
+            if f.has_field(key):
+                act_sum.kvps[key] = f.get_value(key)
+        self._db_persistence.save_activity_sum(act_sum)
