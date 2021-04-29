@@ -7,10 +7,10 @@ class ActivityData:
         self.id = 0
         self.user_id = 0
         self.activity_date = datetime.datetime.now()
-        self.device_mfgr = ""
-        self.device_model = ""
-        self.activity_type = ""
-        self.activity_sub_type = ""
+        self.device_mfgr = None
+        self.device_model = None
+        self.activity_type = None
+        self.activity_sub_type = None
 
 
 class ActivityRecord:
@@ -19,13 +19,13 @@ class ActivityRecord:
         self.id = 0
         self.activity_id = 0
         self.timestamp = datetime.datetime.now()
-        self.lat = ""
-        self.long = ""
-        self.heart_rate = 0
-        self.distance = 0.0
-        self.altitude = 0.0
-        self.speed = 0.0
-        self.temperature = 0.0
+        self.lat = None
+        self.long = None
+        self.heart_rate = None
+        self.distance = None
+        self.altitude = None
+        self.speed = None
+        self.temperature = None
 
 
 class ActivitySum:

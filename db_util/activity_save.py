@@ -1,6 +1,5 @@
 # TODO: For the future - dataclasses from Python 3.7, SQLAlchemy
 from datetime import datetime
-import sqlite3
 #from db import get_db
 from db_util.activity_models import ActivityData, ActivityRecord, ActivitySum
 
@@ -9,9 +8,10 @@ class ActivitySave:
     """
     Persists a full health activity to the database
     """
-    def __init__(self) -> None:
+    def __init__(self, db) -> None:
         super().__init__()
-        self._db = sqlite3.connect('/Users/cturner/Documents/personal/projects/open_health/docs/open_health.sqlite')
+        # self._db = sqlite3.connect('/Users/cturner/Documents/personal/projects/open_health/docs/open_health.sqlite')
+        self._db = db
 
     def save_acvitity(self, act: ActivityData) -> None:
         activity_insert = "insert into activity (user_id, activity_date, device_mfgr, device_model, activity_type, activity_sub_type) values(?, ?, ?, ?, ?, ?)"
@@ -48,6 +48,3 @@ class ActivitySave:
                 cur.execute(activity_sum_insert, (act_sum.activity_id, key, str_val, int_val, real_val, date_val))
         cur.close()
         self._db.commit()
-
-    def close(self) -> None:
-        self._db.close()

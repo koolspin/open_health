@@ -6,8 +6,10 @@ from werkzeug.exceptions import abort
 from werkzeug.utils import secure_filename
 from auth import login_required
 from db import get_db
+from db_util.activity_save import ActivitySave
+from parsers.fit.fit_handler import FitHandler
 
-ALLOWED_EXTENSIONS = {'txt', 'pdf', 'png', 'jpg', 'jpeg', 'gif'}
+ALLOWED_EXTENSIONS = {'fit'}
 
 bp = Blueprint('health', __name__)
 
@@ -38,8 +40,15 @@ def upload():
             return redirect(request.url)
         if file and allowed_file(file.filename):
             filename = secure_filename(file.filename)
-            file.save(os.path.join(current_app.config['UPLOAD_FOLDER'], filename))
+            saved_filepath = os.path.join(current_app.config['UPLOAD_FOLDER'], filename)
+            file.save(saved_filepath)
             flash('File uploaded!')
+            # TODO: Improve handling - maybe as a background process
+            db_conn = get_db()
+            db = ActivitySave(db_conn)
+            fh = FitHandler(saved_filepath, db)
+            fh.handle_file()
+            #
             return redirect(url_for('index'))
 
     return render_template('health/upload.html')

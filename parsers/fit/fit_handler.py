@@ -60,14 +60,15 @@ class FitHandler:
         self._activity = ActivityData()
         self._activity.user_id = 1
         self._activity.activity_date = f.get_value("time_created")
-        self._activity.device_mfgr = f.get_value("manufacturer")
-        self._activity.device_model = f.get_value("garmin_product")
+        self._activity.device_mfgr = f.get_value("manufacturer", fallback=None)
+        self._activity.device_model = f.get_value("garmin_product", fallback=None)
 
     def handle_sport(self, f) -> None:
-        self._activity.activity_type = f.get_value("sport")
-        self._activity.activity_sub_type = f.get_value("sub_sport")
-        self._db_persistence.save_acvitity(self._activity)
-        self._activity_id = self._activity.id
+        if f.has_field("sport"):
+            self._activity.activity_type = f.get_value("sport")
+            self._activity.activity_sub_type = f.get_value("sub_sport", fallback=None)
+            self._db_persistence.save_acvitity(self._activity)
+            self._activity_id = self._activity.id
 
     def handle_record(self, f) -> None:
         act_rec = ActivityRecord()
@@ -76,15 +77,17 @@ class FitHandler:
         # Note we limit the precision on lat / long to 5 digits. 5 digits give 1m accuracy at the equator
         # This is good enough for our purposes.
         fit_lat = f.get_value("position_lat")
-        act_rec.lat = round(fit_lat / FitHandler.GARMIN_LOC_DIVISOR, 5)
+        if fit_lat is not None:
+            act_rec.lat = round(fit_lat / FitHandler.GARMIN_LOC_DIVISOR, 5)
         fit_long = f.get_value("position_long")
-        act_rec.long = round(fit_long / FitHandler.GARMIN_LOC_DIVISOR, 5)
+        if fit_long is not None:
+            act_rec.long = round(fit_long / FitHandler.GARMIN_LOC_DIVISOR, 5)
         #
-        act_rec.heart_rate = f.get_value("heart_rate")
-        act_rec.distance = f.get_value("distance")
-        act_rec.altitude = f.get_value("enhanced_altitude")
-        act_rec.speed = f.get_value("enhanced_speed")
-        act_rec.temperature = f.get_value("temperature")
+        act_rec.heart_rate = f.get_value("heart_rate", fallback=None)
+        act_rec.distance = f.get_value("distance", fallback=None)
+        act_rec.altitude = f.get_value("enhanced_altitude", fallback=None)
+        act_rec.speed = f.get_value("enhanced_speed", fallback=None)
+        act_rec.temperature = f.get_value("temperature", fallback=None)
         self._db_persistence.save_acvitity_record(act_rec)
 
     def handle_session(self, f) -> None:
