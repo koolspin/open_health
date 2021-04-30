@@ -17,11 +17,5 @@ from . import health
 app.register_blueprint(health.bp)
 app.add_url_rule('/', endpoint='index')
 
-
-@app.route('/')
-def hello_world():
-    return 'Hello World!'
-
-
 if __name__ == '__main__':
     app.run()

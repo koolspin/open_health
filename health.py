@@ -1,6 +1,6 @@
 import os
 from flask import (
-    Blueprint, current_app, flash, g, redirect, render_template, request, url_for
+    Blueprint, current_app, flash, g, redirect, render_template, request, url_for, session
 )
 from werkzeug.exceptions import abort
 from werkzeug.utils import secure_filename
@@ -20,7 +20,18 @@ def allowed_file(filename):
 
 
 @bp.route('/')
+@login_required
 def index():
+    activity_sel = 'select activity_date as "ad [timestamp]", activity_type, activity_sub_type from activity where user_id = ? order by activity_date'
+    if request.method == 'GET':
+        if 'user_id' in session:
+            user_id = session['user_id']
+            db_conn = get_db()
+            cur = db_conn.cursor()
+            cur.execute(activity_sel, (user_id,))
+            data = cur.fetchall()
+            cur.close()
+            return render_template('health/index.html', data=data)
     return render_template('health/index.html')
 
 

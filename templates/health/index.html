@@ -1,5 +1,27 @@
 {% extends 'base.html' %}
 
 {% block header %}
-  <h1>Index!</h1>
+  <h1>Activity List</h1>
+{% endblock %}
+
+{% block content %}
+    <table>
+    <thead>
+    <tr>
+        <th>Date</th>
+        <th>Activity</th>
+        <th>SubType</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    {% for row in data %}
+        <tr>
+            <td class="{{ loop.cycle('odd', 'even') }}">{{ row[0]|truncate(19, True, '') }}</td>
+            <td class="{{ loop.cycle('odd', 'even') }}">{{ row[1] }}</td>
+            <td class="{{ loop.cycle('odd', 'even') }}">{{ row[2] }}</td>
+        </tr>
+    {% endfor %}
+    </tbody>
+    </table>
 {% endblock %}
