@@ -29,6 +29,12 @@ def convert_distance(km):
     return miles
 
 
+def convert_height(meters):
+    meters_to_feet_conversion = 3.28084
+    feet = meters * meters_to_feet_conversion
+    return feet
+
+
 def convert_temp(cel):
     fa = (cel * 1.8) + 32.0
     return fa
@@ -96,7 +102,9 @@ def activity_detail():
                 else:
                     col.append(None)
                 if row[5] is not None:
-                    col.append(convert_distance(row[5] / 1000.0))
+                    # It looks like the alititude records are already scaled and offset by the fitdecode lib
+                    # So here we just convert to the preferred height scale
+                    col.append(convert_height(row[5]))
                 else:
                     col.append(None)
                 if row[6] is not None:
