@@ -16,8 +16,41 @@ class FitHandler:
         self._db_persistence = db_persistence
         self._activity = None
         self._activity_id = 0
+        self._activity_saved = False
 
     def handle_file(self) -> None:
+        """
+        Note that we parse the .fit file twice - once to capture all of the session information and the 2nd
+        time to capture the records with the fitness samples.
+
+        :return: None
+        """
+        # First pass
+        with fitdecode.FitReader(self._source_file) as fit_file:
+            frame_num = 0
+            for frame in fit_file:
+                print('First pass Frame # {0}'.format(frame_num))
+                frame_num += 1
+                if isinstance(frame, fitdecode.records.FitHeader):
+                    # TODO: Validate the protocol version
+                    print("FitHeader")
+                    print("FIT profile version: {0}".format(frame.profile_ver))
+                    print("FIT proto version: {0}".format(frame.proto_ver))
+                if isinstance(frame, fitdecode.records.FitDataMessage):
+                    print("FitDataMessage: {0}".format(frame.name))
+                    print("Global Msg Num: {0}".format(frame.global_mesg_num))
+                    print("Local Msg Num: {0}".format(frame.local_mesg_num))
+                    if frame.mesg_type is not None:
+                        print("Mesg Type: {0}".format(frame.mesg_type.name))
+                        if frame.mesg_type.name == "file_id":
+                            self.handle_file_id(frame)
+                        if frame.mesg_type.name == "session":
+                            if self.handle_activity_save(frame):
+                                break
+                    # for field in frame.fields:
+                    #     if isinstance(field, fitdecode.types.FieldData):
+                    #         print('FitDataMessage, K, V: {0}, {1}'.format(field.name, field.value))
+        # Second pass
         with fitdecode.FitReader(self._source_file) as fit_file:
             frame_num = 0
             for frame in fit_file:
@@ -34,10 +67,6 @@ class FitHandler:
                     print("Local Msg Num: {0}".format(frame.local_mesg_num))
                     if frame.mesg_type is not None:
                         print("Mesg Type: {0}".format(frame.mesg_type.name))
-                        if frame.mesg_type.name == "file_id":
-                            self.handle_file_id(frame)
-                        if frame.mesg_type.name == "sport":
-                            self.handle_sport(frame)
                         if frame.mesg_type.name == "record":
                             self.handle_record(frame)
                         if frame.mesg_type.name == "session":
@@ -62,12 +91,31 @@ class FitHandler:
         self._activity.device_mfgr = f.get_value("manufacturer", fallback=None)
         self._activity.device_model = f.get_value("garmin_product", fallback=None)
 
-    def handle_sport(self, f) -> None:
+    def handle_activity_save(self, f) -> bool:
+        """
+        Handles saving of the activity record
+        :param f: The frame to parse
+        :return: True if the activity has been saved, false if not
+        """
+        if f.has_field("start_time"):
+            self._activity.activity_date = f.get_value("start_time")
         if f.has_field("sport"):
             self._activity.activity_type = f.get_value("sport")
             self._activity.activity_sub_type = f.get_value("sub_sport", fallback=None)
             self._db_persistence.save_acvitity(self._activity)
             self._activity_id = self._activity.id
+            return True
+        else:
+            return False
+
+    def save_unknown_activity(self) -> None:
+        """
+        If we've completed our first pass and haven't encountered a session record, we save this as an unknown activity
+        :return: None
+        """
+        self._activity.activity_type = "Unknown"
+        self._db_persistence.save_acvitity(self._activity)
+        self._activity_id = self._activity.id
 
     def handle_record(self, f) -> None:
         act_rec = ActivityRecord()
@@ -75,10 +123,10 @@ class FitHandler:
         act_rec.timestamp = f.get_value("timestamp")
         # Note we limit the precision on lat / long to 5 digits. 5 digits give 1m accuracy at the equator
         # This is good enough for our purposes.
-        fit_lat = f.get_value("position_lat")
+        fit_lat = f.get_value("position_lat", fallback=None)
         if fit_lat is not None:
             act_rec.lat = round(fit_lat / FitHandler.GARMIN_LOC_DIVISOR, 5)
-        fit_long = f.get_value("position_long")
+        fit_long = f.get_value("position_long", fallback=None)
         if fit_long is not None:
             act_rec.long = round(fit_long / FitHandler.GARMIN_LOC_DIVISOR, 5)
         #
