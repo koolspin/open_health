@@ -11,6 +11,7 @@ class ActivityData:
         self.device_model = None
         self.activity_type = None
         self.activity_sub_type = None
+        self.file_hash = None
 
 
 class ActivityRecord:

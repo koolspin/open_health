@@ -10,6 +10,7 @@ from auth import login_required
 from db import get_db
 from db_util.activity_load import ActivityLoad
 from db_util.activity_save import ActivitySave
+from db_util.file_hash import FileHash
 from parsers.fit.fit_handler import FitHandler
 
 ALLOWED_EXTENSIONS = {'fit'}
@@ -130,13 +131,18 @@ def upload():
             filename = secure_filename(file.filename)
             saved_filepath = os.path.join(current_app.config['UPLOAD_FOLDER'], filename)
             file.save(saved_filepath)
-            flash('File uploaded!')
             # TODO: Improve handling - maybe as a background process
-            db_conn = get_db()
-            db = ActivitySave(db_conn)
-            fh = FitHandler(saved_filepath, db)
-            fh.handle_file()
-            #
-            return redirect(url_for('index'))
+            user_id = session.get('user_id')
+            if user_id is not None:
+                hash_str = FileHash.hash_file(saved_filepath)
+                db_conn = get_db()
+                db = ActivitySave(db_conn, hash_str, user_id)
+                if not db.is_previously_uploaded():
+                    fh = FitHandler(saved_filepath, db)
+                    fh.handle_file()
+                    flash('File uploaded!')
+                    return redirect(url_for('index'))
+                else:
+                    flash('File previously uploaded!')
 
     return render_template('health/upload.html')

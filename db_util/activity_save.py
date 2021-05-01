@@ -1,6 +1,5 @@
 # TODO: For the future - dataclasses from Python 3.7, SQLAlchemy
 from datetime import datetime
-#from db import get_db
 from db_util.activity_models import ActivityData, ActivityRecord, ActivitySum
 
 
@@ -8,15 +7,27 @@ class ActivitySave:
     """
     Persists a full health activity to the database
     """
-    def __init__(self, db) -> None:
+    def __init__(self, db, file_hash: str, user_id: int) -> None:
         super().__init__()
         # self._db = sqlite3.connect('/Users/cturner/Documents/personal/projects/open_health/docs/open_health.sqlite')
         self._db = db
+        self._file_hash = file_hash
+        self._user_id = user_id
+
+    def is_previously_uploaded(self) -> bool:
+        # Determine if the same file hash has already been uploaded by the user
+        select_by_hash = "select id from activity where file_hash = ? and user_id = ?"
+        cur = self._db.cursor()
+        cur.execute(select_by_hash, (self._file_hash, self._user_id))
+        id_list = cur.fetchall()
+        return len(id_list) > 0
 
     def save_acvitity(self, act: ActivityData) -> None:
-        activity_insert = "insert into activity (user_id, activity_date, device_mfgr, device_model, activity_type, activity_sub_type) values(?, ?, ?, ?, ?, ?)"
+        activity_insert = "insert into activity (user_id, activity_date, device_mfgr, device_model, activity_type, activity_sub_type, file_hash) values(?, ?, ?, ?, ?, ?, ?)"
+        act.file_hash = self._file_hash
+        act.user_id = self._user_id
         cur = self._db.cursor()
-        cur.execute(activity_insert, (act.user_id, act.activity_date, act.device_mfgr, act.device_model, act.activity_type, act.activity_sub_type))
+        cur.execute(activity_insert, (act.user_id, act.activity_date, act.device_mfgr, act.device_model, act.activity_type, act.activity_sub_type, act.file_hash))
         act.id = cur.lastrowid
         cur.close()
         self._db.commit()

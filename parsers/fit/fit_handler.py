@@ -58,7 +58,6 @@ class FitHandler:
 
     def handle_file_id(self, f) -> None:
         self._activity = ActivityData()
-        self._activity.user_id = 1
         self._activity.activity_date = f.get_value("time_created")
         self._activity.device_mfgr = f.get_value("manufacturer", fallback=None)
         self._activity.device_model = f.get_value("garmin_product", fallback=None)
