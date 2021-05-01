@@ -11,6 +11,8 @@
         <th>Date</th>
         <th>Activity</th>
         <th>SubType</th>
+        <th>Distance</th>
+        <th>Time</th>
         <th>Detail</th>
     </tr>
     </thead>
@@ -21,6 +23,14 @@
             <td class="{{ loop.cycle('odd', 'even') }}">{{ row[1]|truncate(19, True, '') }}</td>
             <td class="{{ loop.cycle('odd', 'even') }}">{{ row[2] }}</td>
             <td class="{{ loop.cycle('odd', 'even') }}">{{ row[3] }}</td>
+            <td class="{{ loop.cycle('odd', 'even') }}">
+                {% if row[4] %}
+                    {{  "%.02f"|format(row[4]) }}
+                {% else %}
+                    &nbsp;
+                {% endif %}
+            </td>
+            <td class="{{ loop.cycle('odd', 'even') }}">{{ row[5] }}</td>
             <td class="{{ loop.cycle('odd', 'even') }}"><a href="/activity_detail.html?actid={{ row[0] }}">[DETAIL]</a></td>
         </tr>
     {% endfor %}

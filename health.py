@@ -1,4 +1,6 @@
 import os
+import datetime
+
 from flask import (
     Blueprint, current_app, flash, g, redirect, render_template, request, url_for, session
 )
@@ -6,6 +8,7 @@ from werkzeug.exceptions import abort
 from werkzeug.utils import secure_filename
 from auth import login_required
 from db import get_db
+from db_util.activity_load import ActivityLoad
 from db_util.activity_save import ActivitySave
 from parsers.fit.fit_handler import FitHandler
 
@@ -40,7 +43,27 @@ def index():
             db_conn = get_db()
             cur = db_conn.cursor()
             cur.execute(activity_sel, (user_id,))
-            data = cur.fetchall()
+            data = []
+            for row in cur:
+                col = []
+                col.append(row[0])
+                col.append(row[1])
+                col.append(row[2])
+                col.append(row[3])
+                act_load = ActivityLoad(db_conn)
+                act_sum = act_load.load_activity_sum(row[0])
+                total_dist = act_sum.kvps.get("total_distance")
+                if total_dist is not None:
+                    col.append(convert_distance(total_dist / 1000.0))
+                else:
+                    col.append(None)
+                total_time = act_sum.kvps.get("total_timer_time")
+                if total_dist is not None:
+                    elapsed_time = datetime.timedelta(seconds=int(total_time))
+                    col.append(str(elapsed_time))
+                else:
+                    col.append(None)
+                data.append(col)
             cur.close()
             return render_template('health/index.html', data=data)
     return render_template('health/index.html')
