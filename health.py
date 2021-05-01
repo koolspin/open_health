@@ -19,10 +19,21 @@ def allowed_file(filename):
            filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
 
+def convert_distance(km):
+    km_to_miles_conversion = 0.621371
+    miles = km * km_to_miles_conversion
+    return miles
+
+
+def convert_temp(cel):
+    fa = (cel * 1.8) + 32.0
+    return fa
+
+
 @bp.route('/')
 @login_required
 def index():
-    activity_sel = 'select activity_date as "ad [timestamp]", activity_type, activity_sub_type from activity where user_id = ? order by activity_date'
+    activity_sel = 'select id, activity_date as "ad [timestamp]", activity_type, activity_sub_type from activity where user_id = ? order by activity_date'
     if request.method == 'GET':
         if 'user_id' in session:
             user_id = session['user_id']
@@ -33,6 +44,49 @@ def index():
             cur.close()
             return render_template('health/index.html', data=data)
     return render_template('health/index.html')
+
+
+@bp.route('/activity_detail.html')
+@login_required
+def activity_detail():
+    activity_detail = 'select r.timestamp as "ad [timestamp]", r.lat, r.long, r.heart_rate, r.distance, r.altitude, r.speed, ' \
+                      'r.temperature from activity_record r inner join activity a on r.activity_id = a.id ' \
+                      'where a.user_id = ? and r.activity_id = ? order by r.timestamp'
+    if request.method == 'GET':
+        if 'user_id' in session:
+            user_id = session['user_id']
+            activity_id = request.args.get('actid')
+            db_conn = get_db()
+            cur = db_conn.cursor()
+            cur.execute(activity_detail, (user_id, activity_id))
+            data = []
+            for row in cur:
+                # Convert to km, the possibly to miles?
+                col = []
+                col.append(row[0])
+                col.append(row[1])
+                col.append(row[2])
+                col.append(row[3])
+                if row[4] is not None:
+                    col.append(convert_distance(row[4] / 1000.0))
+                else:
+                    col.append(None)
+                if row[5] is not None:
+                    col.append(convert_distance(row[5] / 1000.0))
+                else:
+                    col.append(None)
+                if row[6] is not None:
+                    col.append(convert_distance(row[6] / 1000.0) * 3600.0)
+                else:
+                    col.append(None)
+                if row[7] is not None:
+                    col.append(convert_temp(row[7]))
+                else:
+                    col.append(None)
+                data.append(col)
+            cur.close()
+            return render_template('health/activity_detail.html', data=data)
+    return render_template('health/activity_detail.html')
 
 
 @bp.route('/upload', methods=('GET', 'POST'))

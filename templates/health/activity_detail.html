@@ -1,0 +1,55 @@
+{% extends 'base.html' %}
+
+{% block header %}
+    <h1>Activity Detail</h1>
+{% endblock %}
+
+{% block content %}
+    <table>
+        <thead>
+        <tr>
+            <th>Timestamp</th>
+            <th>Lat</th>
+            <th>Long</th>
+            <th>Altitude</th>
+            <th>Distance</th>
+            <th>Speed</th>
+            <th>HeartRate</th>
+            <th>Temperature</th>
+        </tr>
+        </thead>
+
+        <tbody>
+        {% for row in data %}
+            <tr>
+                <td class="{{ loop.cycle('odd', 'even') }}">{{ row[0]|truncate(19, True, '') }}</td>
+                <td class="{{ loop.cycle('odd', 'even') }}">{{ row[1] }}</td>
+                <td class="{{ loop.cycle('odd', 'even') }}">{{ row[2] }}</td>
+                <td class="{{ loop.cycle('odd', 'even') }}">
+                    {% if row[5] %}
+                        {{  "%.02f"|format(row[5]) }}
+                    {% else %}
+                        &nbsp;
+                    {% endif %}
+                </td>
+                <td class="{{ loop.cycle('odd', 'even') }}">
+                    {% if row[4] %}
+                        {{  "%.02f"|format(row[4]) }}
+                    {% else %}
+                        &nbsp;
+                    {% endif %}
+                </td>
+                <td class="{{ loop.cycle('odd', 'even') }}">
+                    {% if row[6] %}
+                        {{  "%.02f"|format(row[6]) }}
+                    {% else %}
+                        &nbsp;
+                    {% endif %}
+                </td>
+                <td class="{{ loop.cycle('odd', 'even') }}">{{ row[3] }}</td>
+                <td class="{{ loop.cycle('odd', 'even') }}">{{ row[7]|round|int }}</td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+{% endblock %}

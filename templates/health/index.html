@@ -11,15 +11,17 @@
         <th>Date</th>
         <th>Activity</th>
         <th>SubType</th>
+        <th>Detail</th>
     </tr>
     </thead>
 
     <tbody>
     {% for row in data %}
         <tr>
-            <td class="{{ loop.cycle('odd', 'even') }}">{{ row[0]|truncate(19, True, '') }}</td>
-            <td class="{{ loop.cycle('odd', 'even') }}">{{ row[1] }}</td>
+            <td class="{{ loop.cycle('odd', 'even') }}">{{ row[1]|truncate(19, True, '') }}</td>
             <td class="{{ loop.cycle('odd', 'even') }}">{{ row[2] }}</td>
+            <td class="{{ loop.cycle('odd', 'even') }}">{{ row[3] }}</td>
+            <td class="{{ loop.cycle('odd', 'even') }}"><a href="/activity_detail.html?actid={{ row[0] }}">[DETAIL]</a></td>
         </tr>
     {% endfor %}
     </tbody>
