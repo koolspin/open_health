@@ -18,8 +18,15 @@ create table activity
     device_mfgr       varchar,
     device_model      varchar,
     activity_type     varchar  not null,
-    activity_sub_type varchar
+    activity_sub_type varchar,
+    file_hash         varchar
 );
+
+create index activity_activity_date_index
+    on activity (activity_date);
+
+create index activity_file_hash_index
+    on activity (file_hash);
 
 create table activity_record
 (
@@ -37,6 +44,9 @@ create table activity_record
     speed       real,
     temperature real
 );
+
+create index activity_record_timestamp_index
+    on activity_record (timestamp);
 
 create table activity_sum
 (
