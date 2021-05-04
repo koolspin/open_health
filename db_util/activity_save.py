@@ -59,3 +59,14 @@ class ActivitySave:
                 cur.execute(activity_sum_insert, (act_sum.activity_id, key, str_val, int_val, real_val, date_val))
         cur.close()
         self._db.commit()
+
+    def delete_activity(self, act: ActivityData) -> None:
+        activity_delete = "delete from activity where id = ? and user_id = ?"
+        activity_sum_delete = "delete from activity_sum where activity_id = ?"
+        activity_record_delete = "delete from activity_record where activity_id = ?"
+        cur = self._db.cursor()
+        cur.execute(activity_record_delete, (act.id, ))
+        cur.execute(activity_sum_delete, (act.id, ))
+        cur.execute(activity_delete, (act.id, act.user_id))
+        self._db.commit()
+

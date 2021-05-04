@@ -9,6 +9,7 @@ from werkzeug.utils import secure_filename
 from auth import login_required
 from db import get_db
 from db_util.activity_load import ActivityLoad
+from db_util.activity_models import ActivityData
 from db_util.activity_save import ActivitySave
 from db_util.file_hash import FileHash
 from parsers.fit.fit_handler import FitHandler
@@ -76,7 +77,7 @@ def index():
     return render_template('health/index.html')
 
 
-@bp.route('/activity_detail.html')
+@bp.route('/activity_detail.html', methods=('GET', 'DELETE'))
 @login_required
 def activity_detail():
     activity_detail = 'select r.timestamp as "ad [timestamp]", r.lat, r.long, r.heart_rate, r.distance, r.altitude, r.speed, ' \
@@ -118,6 +119,19 @@ def activity_detail():
                 data.append(col)
             cur.close()
             return render_template('health/activity_detail.html', data=data)
+    if request.method == 'DELETE':
+        if 'user_id' in session:
+            user_id = session['user_id']
+            activity_id = request.args.get('actid')
+            db_conn = get_db()
+            db = ActivitySave(db_conn, '', user_id)
+            act = ActivityData()
+            act.id = activity_id
+            act.user_id = user_id
+            db.delete_activity(act)
+            flash('Activity deleted')
+            return redirect(url_for('index'), code=303)
+
     return render_template('health/activity_detail.html')
 
 

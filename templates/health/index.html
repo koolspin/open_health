@@ -14,6 +14,7 @@
         <th>Distance</th>
         <th>Time</th>
         <th>Detail</th>
+        <th>Delete</th>
     </tr>
     </thead>
 
@@ -32,8 +33,35 @@
             </td>
             <td class="{{ loop.cycle('odd', 'even') }}">{{ row[5] }}</td>
             <td class="{{ loop.cycle('odd', 'even') }}"><a href="/activity_detail.html?actid={{ row[0] }}">[DETAIL]</a></td>
+            <td class="{{ loop.cycle('odd', 'even') }}"><button id="del_{{ row[0] }}" type="button">DELETE</button></td>
         </tr>
     {% endfor %}
     </tbody>
     </table>
+    {% block javascript %}
+        <script type="text/javascript">
+            if (document.addEventListener) {
+                document.addEventListener("click", handleClick, false)
+            }
+            function handleClick(event) {
+                if (event.target.nodeName == "BUTTON") {
+                    var button_id = event.target.id
+                    var act_id = button_id.substring(4)
+                    if (window.confirm('Are you sure you want to delete this activity?')) {
+                        fetch('/activity_detail.html?actid=' + act_id, {
+                            method: 'DELETE'
+                        })
+                        .then(response => {
+                            if (response.redirected) {
+                                window.location.href = response.url;
+                            }
+                        })
+                    }
+                }
+
+            }
+        </script>
+    {% endblock %}
+
 {% endblock %}
+
