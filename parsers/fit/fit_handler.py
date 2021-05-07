@@ -19,6 +19,9 @@ class FitHandler:
         self._activity_saved = False
         self._current_lap_number = 0
         self._current_session_number = 0
+        self._sport_count = 0
+        self._activity_record_found = False
+        self._file_creation_date = None
 
     def handle_file(self) -> None:
         """
@@ -47,12 +50,15 @@ class FitHandler:
                         if frame.mesg_type.name == "file_id":
                             self.handle_file_id(frame)
                         if frame.mesg_type.name == "session":
-                            if self.handle_activity_save(frame):
-                                break
+                            self.handle_session_first_pass(frame)
+                        if frame.mesg_type.name == "activity":
+                            self.save_activity()
                     # for field in frame.fields:
                     #     if isinstance(field, fitdecode.types.FieldData):
                     #         print('FitDataMessage, K, V: {0}, {1}'.format(field.name, field.value))
         # Second pass
+        if not self._activity_record_found:
+            self.save_activity(None)
         with fitdecode.FitReader(self._source_file) as fit_file:
             frame_num = 0
             for frame in fit_file:
@@ -91,34 +97,48 @@ class FitHandler:
 
     def handle_file_id(self, f) -> None:
         self._activity = ActivityData()
-        self._activity.activity_date = f.get_value("time_created")
+        self._file_creation_date = f.get_value("time_created")
         self._activity.device_mfgr = f.get_value("manufacturer", fallback=None)
         self._activity.device_model = f.get_value("garmin_product", fallback=None)
 
-    def handle_activity_save(self, f) -> bool:
+    def handle_session_first_pass(self, f) -> bool:
         """
-        Handles saving of the activity record.
-        Note this only looks at the first session record so may be misleading for multi-session activities
+        Handles session records on the first pass
+        Fill in the start time from the first session frame.
+        Note that the sport field may be overwritten multiple times.
+        If there are multiple sports in this activity then the activity type is set to 'multi-sport'
         :param f: The frame to parse
         :return: True if the activity has been saved, false if not
         """
         if f.has_field("start_time"):
-            self._activity.activity_date = f.get_value("start_time")
+            if self._activity.activity_date is None:
+                self._activity.activity_date = f.get_value("start_time")
         if f.has_field("sport"):
-            self._activity.activity_type = f.get_value("sport")
-            self._activity.activity_sub_type = f.get_value("sub_sport", fallback=None)
-            self._db_persistence.save_acvitity(self._activity)
-            self._activity_id = self._activity.id
-            return True
-        else:
-            return False
+            sport = f.get_value("sport", fallback=None)
+            if sport is not None:
+                if self._activity.activity_type is None:
+                    self._sport_count = 1
+                    self._activity.activity_type = sport
+                    self._activity.activity_sub_type = f.get_value("sub_sport", fallback=None)
+                else:
+                    if sport != self._activity.activity_type:
+                        self._sport_count += 1
 
-    def save_unknown_activity(self) -> None:
+    def save_activity(self) -> None:
         """
-        If we've completed our first pass and haven't encountered a session record, we save this as an unknown activity
+        Save the activity record at the conclusion of our first pass
+        Sanitize these fields in case of multiple sessions and missing info
         :return: None
         """
-        self._activity.activity_type = "Unknown"
+        self._activity_record_found = True
+        if self._sport_count == 0:
+            self._activity.activity_type = 'unknown'
+            self._activity.activity_sub_type = None
+        elif self._sport_count > 1:
+            self._activity.activity_type = 'multi-sport'
+            self._activity.activity_sub_type = None
+        if self._activity.activity_date is None:
+            self._activity.activity_date = self._file_creation_date
         self._db_persistence.save_acvitity(self._activity)
         self._activity_id = self._activity.id
 

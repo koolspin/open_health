@@ -34,3 +34,17 @@ class ActivityLoad:
             act_sum.kvps[key] = val
         cur.close()
         return act_sum
+
+    def get_summed_column(self, act_id: int, key: str) -> float:
+        """
+        Load the total distance of all sessions
+        :param act_id: The activity id to query
+        :param key: The key of the floating point data value to retrieve
+        :return: The total distance of all sessions summed
+        """
+        summed_column = "select sum(summary_value_real) " \
+                              "from session_sum where activity_id = ? and summary_key = ?"
+        cur = self._db.cursor()
+        cur.execute(summed_column, (act_id, key))
+        row = cur.fetchone()
+        return row[0]

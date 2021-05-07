@@ -6,7 +6,7 @@ class ActivityData:
         super().__init__()
         self.id = 0
         self.user_id = 0
-        self.activity_date = datetime.datetime.now()
+        self.activity_date = None
         self.device_mfgr = None
         self.device_model = None
         self.activity_type = None

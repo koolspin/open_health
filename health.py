@@ -58,14 +58,14 @@ def index():
                 col.append(row[1])
                 col.append(row[2])
                 col.append(row[3])
+                act_id = row[0]
                 act_load = ActivityLoad(db_conn)
-                act_sum = act_load.load_session_sum(row[0])
-                total_dist = act_sum.kvps.get("total_distance")
+                total_dist = act_load.get_summed_column(act_id, "total_distance")
                 if total_dist is not None:
                     col.append(convert_distance(total_dist / 1000.0))
                 else:
                     col.append(None)
-                total_time = act_sum.kvps.get("total_timer_time")
+                total_time = act_load.get_summed_column(act_id, "total_timer_time")
                 if total_time is not None:
                     elapsed_time = datetime.timedelta(seconds=int(total_time))
                     col.append(str(elapsed_time))
