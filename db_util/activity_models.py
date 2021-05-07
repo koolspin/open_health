@@ -32,14 +32,19 @@ class ActivityRecord:
 class ActivitySum:
     """
     Activity summary data
+    Also known as session data in the fit documentation.
+    There may be more than 1 session summaries in an activity (think triathlon).
+    The same information are also stored in lap records.
+    The only difference being that lap records lack the num_laps field.
+
     Here are the valid keys:
     start_time (datetime)
     total_elapsed_time (float)
     total_timer_time (float)
     total_distance (float)
     total_calories (float)
-    enhanced_avg_speed (float)
-    enhanced_max_speed (float)
+    avg_speed (float)
+    max_speed (float)
     avg_power (float)
     max_power (float)
     total_ascent (float)
@@ -53,13 +58,16 @@ class ActivitySum:
     max_cadence (float)
     total_training_effect (float)
     total_anaerobic_training_effect (float)
+    total_strokes (float)
     """
     def __init__(self) -> None:
         super().__init__()
         self.keys = ["start_time", "total_elapsed_time", "total_timer_time", "total_distance", "total_calories",
-                     "enhanced_avg_speed", "enhanced_max_speed", "avg_power", "max_power", "total_ascent", "total_descent",
+                     "avg_speed", "max_speed", "avg_power", "max_power", "total_ascent", "total_descent",
                      "num_laps", "avg_heart_rate", "max_heart_rate", "avg_temperature", "max_temperature", "avg_cadence",
-                     "max_cadence", "total_training_effect", "total_training_effect"]
+                     "max_cadence", "total_training_effect", "total_anaerobic_training_effect", "total_strokes"]
         self.id = 0
         self.activity_id = 0
+        # session_num or lap_num depending on the target table
+        self.session_num = 0
         self.kvps = {}

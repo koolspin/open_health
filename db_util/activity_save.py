@@ -39,8 +39,8 @@ class ActivitySave:
         cur.close()
         self._db.commit()
 
-    def save_activity_sum(self, act_sum: ActivitySum) -> None:
-        activity_sum_insert = "insert into activity_sum (activity_id, summary_key, summary_value, summary_value_int, summary_value_real, summary_value_date) values(?, ?, ?, ?, ?, ?)"
+    def save_session_sum(self, act_sum: ActivitySum) -> None:
+        session_sum_insert = "insert into session_sum (activity_id, session_num, summary_key, summary_value, summary_value_int, summary_value_real, summary_value_date) values(?, ?, ?, ?, ?, ?, ?)"
         cur = self._db.cursor()
         for key, value in act_sum.kvps.items():
             str_val = None
@@ -56,17 +56,40 @@ class ActivitySave:
                     date_val = value
                 else:
                     str_val = str(value)
-                cur.execute(activity_sum_insert, (act_sum.activity_id, key, str_val, int_val, real_val, date_val))
+                cur.execute(session_sum_insert, (act_sum.activity_id, act_sum.session_num, key, str_val, int_val, real_val, date_val))
+        cur.close()
+        self._db.commit()
+
+    def save_lap_sum(self, act_sum: ActivitySum) -> None:
+        lap_sum_insert = "insert into lap_sum (activity_id, lap_num, summary_key, summary_value, summary_value_int, summary_value_real, summary_value_date) values(?, ?, ?, ?, ?, ?, ?)"
+        cur = self._db.cursor()
+        for key, value in act_sum.kvps.items():
+            str_val = None
+            int_val = None
+            real_val = None
+            date_val = None
+            if value is not None:
+                if isinstance(value, int):
+                    int_val = value
+                elif isinstance(value, float):
+                    real_val = value
+                elif isinstance(value, datetime):
+                    date_val = value
+                else:
+                    str_val = str(value)
+                cur.execute(lap_sum_insert, (act_sum.activity_id, act_sum.session_num, key, str_val, int_val, real_val, date_val))
         cur.close()
         self._db.commit()
 
     def delete_activity(self, act: ActivityData) -> None:
         activity_delete = "delete from activity where id = ? and user_id = ?"
-        activity_sum_delete = "delete from activity_sum where activity_id = ?"
+        lap_sum_delete = "delete from lap_sum where activity_id = ?"
+        activity_sum_delete = "delete from session_sum where activity_id = ?"
         activity_record_delete = "delete from activity_record where activity_id = ?"
         cur = self._db.cursor()
         cur.execute(activity_record_delete, (act.id, ))
         cur.execute(activity_sum_delete, (act.id, ))
+        cur.execute(lap_sum_delete, (act.id, ))
         cur.execute(activity_delete, (act.id, act.user_id))
         self._db.commit()
 

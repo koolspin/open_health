@@ -17,6 +17,8 @@ class FitHandler:
         self._activity = None
         self._activity_id = 0
         self._activity_saved = False
+        self._current_lap_number = 0
+        self._current_session_number = 0
 
     def handle_file(self) -> None:
         """
@@ -71,6 +73,8 @@ class FitHandler:
                             self.handle_record(frame)
                         if frame.mesg_type.name == "session":
                             self.handle_session(frame)
+                        if frame.mesg_type.name == "lap":
+                            self.handle_lap(frame)
                     # for field in frame.fields:
                     #     if isinstance(field, fitdecode.types.FieldData):
                     #         print('FitDataMessage, K, V: {0}, {1}'.format(field.name, field.value))
@@ -93,7 +97,8 @@ class FitHandler:
 
     def handle_activity_save(self, f) -> bool:
         """
-        Handles saving of the activity record
+        Handles saving of the activity record.
+        Note this only looks at the first session record so may be misleading for multi-session activities
         :param f: The frame to parse
         :return: True if the activity has been saved, false if not
         """
@@ -140,7 +145,19 @@ class FitHandler:
     def handle_session(self, f) -> None:
         act_sum = ActivitySum()
         act_sum.activity_id = self._activity_id
+        act_sum.session_num = self._current_session_number
         for key in act_sum.keys:
             if f.has_field(key):
                 act_sum.kvps[key] = f.get_value(key)
-        self._db_persistence.save_activity_sum(act_sum)
+        self._db_persistence.save_session_sum(act_sum)
+        self._current_session_number += 1
+
+    def handle_lap(self, f) -> None:
+        act_sum = ActivitySum()
+        act_sum.activity_id = self._activity_id
+        act_sum.session_num = self._current_lap_number
+        for key in act_sum.keys:
+            if f.has_field(key):
+                act_sum.kvps[key] = f.get_value(key)
+        self._db_persistence.save_lap_sum(act_sum)
+        self._current_lap_number += 1

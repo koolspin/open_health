@@ -10,10 +10,15 @@ class ActivityLoad:
         self._db = db
 
 
-    def load_activity_sum(self, act_id: int) -> ActivitySum:
+    def load_session_sum(self, act_id: int) -> ActivitySum:
+        """
+        Note this only loads the first session summary
+        :param act_id:
+        :return: An ActivitySum object
+        """
         act_sum = ActivitySum()
         activity_sum_select = "select summary_key, summary_value, summary_value_int, summary_value_real, summary_value_date " \
-                              "from activity_sum where activity_id = ?"
+                              "from session_sum where activity_id = ? and session_num = 1"
         cur = self._db.cursor()
         cur.execute(activity_sum_select, (act_id, ))
         for row in cur:

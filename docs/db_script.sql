@@ -4,8 +4,13 @@ create table user
         constraint user_pk
             primary key autoincrement,
     username varchar not null,
-    password varchar not null
+    password varchar not null,
+    creation_date     datetime not null,
+    last_login_date   datetime
 );
+
+create unique index user_username_uindex
+    on user (username);
 
 create table activity
 (
@@ -28,6 +33,42 @@ create index activity_activity_date_index
 create index activity_file_hash_index
     on activity (file_hash);
 
+create table lap_sum
+(
+    id                 integer not null
+        constraint lap_sum_pk
+            primary key autoincrement,
+    activity_id        integer not null
+        references activity,
+    lap_num            integer not null,
+    summary_key        varchar not null,
+    summary_value      varchar,
+    summary_value_int  integer,
+    summary_value_real real,
+    summary_value_date datetime
+);
+
+create unique index lap_sum_activity_id_summary_key_uindex
+    on lap_sum (activity_id, lap_num, summary_key);
+
+create table session_sum
+(
+    id                 integer not null
+        constraint session_sum_pk
+            primary key autoincrement,
+    activity_id        integer not null
+        references activity,
+    session_num        integer not null,
+    summary_key        varchar not null,
+    summary_value      varchar,
+    summary_value_int  integer,
+    summary_value_real real,
+    summary_value_date datetime
+);
+
+create unique index session_sum_activity_id_summary_key_uindex
+    on session_sum (activity_id, session_num, summary_key);
+
 create table activity_record
 (
     id          integer  not null
@@ -47,54 +88,4 @@ create table activity_record
 
 create index activity_record_timestamp_index
     on activity_record (timestamp);
-
-create table activity_sum
-(
-    id                 integer not null
-        constraint activity_sum_pk
-            primary key autoincrement,
-    activity_id        integer not null
-        references activity,
-    summary_key        varchar not null,
-    summary_value      varchar,
-    summary_value_int  integer,
-    summary_value_real real,
-    summary_value_date datetime
-);
-
-create unique index activity_sum_activity_id_summary_key_uindex
-    on activity_sum (activity_id, summary_key);
-
-create table activity_summary
-(
-    id                              integer  not null
-        constraint activity_summary_pk
-            primary key autoincrement,
-    activity_id                     integer  not null
-        references activity,
-    start_time                      datetime not null,
-    elapsed_time                    real,
-    total_time                      real,
-    total_distance                  real,
-    total_calories                  real,
-    average_speed                   real,
-    max_speed                       real,
-    average_power                   real,
-    max_power                       real,
-    total_ascent                    real,
-    total_descent                   real,
-    lap_count                       integer,
-    average_heart_rate              integer,
-    max_heart_rate                  integer,
-    average_temperature             real,
-    max_temperature                 real,
-    average_cadence                 real,
-    max_cadence                     real,
-    total_training_effect           real,
-    total_anaerobic_training_effect real
-);
-
-create unique index user_username_uindex
-    on user (username);
-
 
