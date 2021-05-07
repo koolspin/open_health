@@ -59,6 +59,8 @@ def login():
         if error is None:
             session.clear()
             session['user_id'] = user['id']
+            db.execute("update user set last_login_date = datetime('now') where id = ?", (user['id'], ))
+            db.commit()
             return redirect(url_for('index'))
 
         flash(error)
