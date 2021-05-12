@@ -168,3 +168,28 @@ def upload():
                     flash('File previously uploaded!')
 
     return render_template('health/upload.html')
+
+
+@bp.route('/user_info', methods=('GET', 'POST'))
+@login_required
+def user_info():
+    db = get_db()
+    if 'user_id' in session:
+        user_id = session['user_id']
+        if request.method == 'POST':
+            birthdate = request.form['distance']
+            target_distance = request.form['target_distance ']
+            target_time = request.form['target_time']
+            db.execute(
+                "update user set birth_date = ?, target_weekly_distance = ?, target_weekly_time = ? where id = ?",
+                (birthdate, target_distance, target_time, user_id)
+            )
+            db.commit()
+            flash('User information updated')
+            return redirect(url_for('index'))
+        else:
+            user_info = db.execute(
+                'SELECT birth_date, target_weekly_distance, target_weekly_time FROM user WHERE id = ?', (user_id,)
+            ).fetchone()
+            return render_template('health/user_info.html', user_info=user_info)
+
