@@ -6,12 +6,13 @@
 
 {% block content %}
     <form method="post">
+        <p>You are now {{ user_info[3] }} years old!</p>
         <label for="birthdate">Birthdate</label>
-        <input name="birthdate" id="birthdate" value="{{ user_info[0] }}">
+        <input name="birthdate" id="birthdate" type="date" value="{{ user_info[0] }}">
         <label for="target_distance">Target Distance</label>
-        <input name="target_distance" id="target_distance" value="{{ user_info[1] }}">
+        <input name="target_distance" id="target_distance" type="number" min="1.0" max="500.0" step="0.1" value="{{ user_info[1] }}">
         <label for="target_time">Target Time (minutes)</label>
-        <input name="target_time" id="target_time" value="{{ user_info[2] }}">
+        <input name="target_time" id="target_time" type="number" value="{{ user_info[2] }}">
         <input type="submit" value="Save">
     </form>
 {% endblock %}

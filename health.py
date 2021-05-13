@@ -1,3 +1,4 @@
+import math
 import os
 import datetime
 
@@ -24,7 +25,13 @@ def allowed_file(filename):
            filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
 
-def convert_distance(km):
+def miles_to_km(miles):
+    miles_to_km_conversion = 1.60934
+    km = miles * miles_to_km_conversion
+    return km
+
+
+def km_to_miles(km):
     km_to_miles_conversion = 0.621371
     miles = km * km_to_miles_conversion
     return miles
@@ -62,7 +69,7 @@ def index():
                 act_load = ActivityLoad(db_conn)
                 total_dist = act_load.get_summed_column(act_id, "total_distance")
                 if total_dist is not None:
-                    col.append(convert_distance(total_dist / 1000.0))
+                    col.append(km_to_miles(total_dist / 1000.0))
                 else:
                     col.append(None)
                 total_time = act_load.get_summed_column(act_id, "total_timer_time")
@@ -99,7 +106,7 @@ def activity_detail():
                 col.append(row[2])
                 col.append(row[3])
                 if row[4] is not None:
-                    col.append(convert_distance(row[4] / 1000.0))
+                    col.append(km_to_miles(row[4] / 1000.0))
                 else:
                     col.append(None)
                 if row[5] is not None:
@@ -109,7 +116,7 @@ def activity_detail():
                 else:
                     col.append(None)
                 if row[6] is not None:
-                    col.append(convert_distance(row[6] / 1000.0) * 3600.0)
+                    col.append(km_to_miles(row[6] / 1000.0) * 3600.0)
                 else:
                     col.append(None)
                 if row[7] is not None:
@@ -177,12 +184,13 @@ def user_info():
     if 'user_id' in session:
         user_id = session['user_id']
         if request.method == 'POST':
-            birthdate = request.form['distance']
-            target_distance = request.form['target_distance ']
+            birthdate = request.form['birthdate']
+            target_distance = request.form['target_distance']
             target_time = request.form['target_time']
+            km = miles_to_km(float(target_distance))
             db.execute(
                 "update user set birth_date = ?, target_weekly_distance = ?, target_weekly_time = ? where id = ?",
-                (birthdate, target_distance, target_time, user_id)
+                (birthdate, km, target_time, user_id)
             )
             db.commit()
             flash('User information updated')
@@ -191,5 +199,22 @@ def user_info():
             user_info = db.execute(
                 'SELECT birth_date, target_weekly_distance, target_weekly_time FROM user WHERE id = ?', (user_id,)
             ).fetchone()
-            return render_template('health/user_info.html', user_info=user_info)
+            user_data = []
+            age = None
+            for ix in range(len(user_info)):
+                if ix == 0:
+                    if user_info[ix] is not None:
+                        td = datetime.timedelta(days=365.25)
+                        # age = datetime.date.today().year - user_info[ix].year
+                        age = datetime.date.today() - user_info[ix]
+                        age = math.trunc(age / td)
+                if ix == 1:
+                    if user_info[ix] is not None:
+                        user_data.append(round(km_to_miles(user_info[ix]), 1))
+                    else:
+                        user_data.append(0)
+                else:
+                    user_data.append(user_info[ix])
+            user_data.append(age)
+            return render_template('health/user_info.html', user_info=user_data)
 
