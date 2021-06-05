@@ -26,3 +26,4 @@ input.danger { color: #cc2f2e; }
 input[type=submit] { align-self: start; min-width: 10em; }
 td.odd {text-align: right}
 td.even {background-color: #e0e0ff; text-align: right}
+td.lap {background-color: #e080ff; text-align: right}

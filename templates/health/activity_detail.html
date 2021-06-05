@@ -16,6 +16,7 @@
             <th>Speed</th>
             <th>HeartRate</th>
             <th>Temperature</th>
+            <th>Lap</th>
         </tr>
         </thead>
 
@@ -46,6 +47,11 @@
                         {{  row[7]|round|int }}
                     {% endif %}
                 </td>
+                {% if row[8] %}
+                    <td class="lap">
+                        {{  row[8] }}
+                    </td>
+                {% endif %}
             </tr>
         {% endfor %}
         </tbody>

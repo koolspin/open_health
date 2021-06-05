@@ -95,12 +95,19 @@ def activity_detail():
             user_id = session['user_id']
             activity_id = request.args.get('actid')
             db_conn = get_db()
+            act_load = ActivityLoad(db_conn)
+            all_laps = act_load.load_lap_sum(activity_id)
+            if len(all_laps) > 0:
+                cur_lap_start = next(iter(all_laps))
+            else:
+                cur_lap_start = None
             cur = db_conn.cursor()
             cur.execute(activity_detail, (user_id, activity_id))
             data = []
             for row in cur:
                 # Convert to km, the possibly to miles?
                 col = []
+                cur_start_time = row[0]
                 col.append(row[0])
                 col.append(row[1])
                 col.append(row[2])
@@ -121,6 +128,17 @@ def activity_detail():
                     col.append(None)
                 if row[7] is not None:
                     col.append(convert_temp(row[7]))
+                else:
+                    col.append(None)
+                if cur_lap_start is not None and cur_start_time >= cur_lap_start:
+                    lap = all_laps.get(cur_lap_start)
+                    lap_num = lap.session_num + 1
+                    all_laps.pop(cur_lap_start, None)
+                    col.append(lap_num)
+                    if len(all_laps) > 0:
+                        cur_lap_start = next(iter(all_laps))
+                    else:
+                        cur_lap_start = None
                 else:
                     col.append(None)
                 data.append(col)
