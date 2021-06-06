@@ -17,7 +17,7 @@ class ActivityLoad:
         """
         act_sum = ActivitySum()
         activity_sum_select = "select summary_key, summary_value, summary_value_int, summary_value_real, summary_value_date " \
-                              "from session_sum where activity_id = ? and session_num = 1"
+                              "from session_sum where activity_id = ? and session_num = 0"
         cur = self._db.cursor()
         cur.execute(activity_sum_select, (act_id, ))
         for row in cur:

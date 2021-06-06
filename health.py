@@ -10,7 +10,7 @@ from db_util.activity_models import ActivityData
 from db_util.activity_save import ActivitySave
 from db_util.file_hash import FileHash
 from db_util.query_adapters import query_activity_list, query_activity_detail, update_user_info, query_user_info, \
-    miles_to_km
+    miles_to_km, query_activity_summary
 from parsers.fit.fit_handler import FitHandler
 
 ALLOWED_EXTENSIONS = {'fit'}
@@ -59,6 +59,19 @@ def activity_detail():
             return redirect(url_for('index'), code=303)
 
     return render_template('health/activity_detail.html')
+
+
+@bp.route('/activity_summary.html')
+@login_required
+def activity_summary():
+    if request.method == 'GET':
+        if 'user_id' in session:
+            user_id = session['user_id']
+            activity_id = request.args.get('actid')
+            db_conn = get_db()
+            dat = query_activity_summary(db_conn, user_id, activity_id)
+            return render_template('health/activity_summary.html', data=dat)
+    return render_template('health/activity_summary.html')
 
 
 @bp.route('/upload', methods=('GET', 'POST'))

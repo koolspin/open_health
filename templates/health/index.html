@@ -13,6 +13,7 @@
         <th>SubType</th>
         <th>Distance</th>
         <th>Time</th>
+        <th>Summary</th>
         <th>Detail</th>
         <th>Delete</th>
     </tr>
@@ -32,6 +33,7 @@
                 {% endif %}
             </td>
             <td class="{{ loop.cycle('odd', 'even') }}">{{ row[5] }}</td>
+            <td class="{{ loop.cycle('odd', 'even') }}"><a href="/activity_summary.html?actid={{ row[0] }}">[SUMMARY]</a></td>
             <td class="{{ loop.cycle('odd', 'even') }}"><a href="/activity_detail.html?actid={{ row[0] }}">[DETAIL]</a></td>
             <td class="{{ loop.cycle('odd', 'even') }}"><button id="del_{{ row[0] }}" type="button">DELETE</button></td>
         </tr>

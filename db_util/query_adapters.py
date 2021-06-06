@@ -28,6 +28,28 @@ def convert_temp(cel):
     return fa
 
 
+def normalize_value(k, v):
+    """
+    Normalize a known value by converting as necessary (km to miles, etc)
+    :param k: The key of the item to possibly convert
+    :param v: The raw value of the item
+    :return: The normalized value of the item
+    """
+    normalize_height_keys = ["total_ascent", "total_descent"]
+    normalize_distance_keys = ["total_distance"]
+    normalize_temp_keys = ["avg_temperature", "max_temperature"]
+    val = v
+    if k in normalize_height_keys:
+        val = convert_height(v)
+    elif k in normalize_distance_keys:
+        val = km_to_miles(v / 1000.0)
+    elif k in normalize_temp_keys:
+        val = convert_temp(v)
+    return val
+
+
+
+
 def query_activity_list(db, user_id) -> List:
     """
     Query the activities to display in the master activity list
@@ -122,6 +144,25 @@ def query_activity_detail(db, user_id, activity_id) -> List:
             col.append(None)
         dat.append(col)
     cur.close()
+    return dat
+
+
+def query_activity_summary(db, user_id, activity_id) -> List:
+    """
+    Query the activity summary information for a given activity
+    :param db: db connection
+    :param user_id: ID of the user
+    :param activity_id: ID of the activity
+    :return: An array of data objects for the activity summary page
+    """
+    act_load = ActivityLoad(db)
+    sum = act_load.load_session_sum(activity_id)
+    dat = []
+    for k, v in sum.kvps.items():
+        kv = []
+        kv.append(k)
+        kv.append(normalize_value(k, v))
+        dat.append(kv)
     return dat
 
 
