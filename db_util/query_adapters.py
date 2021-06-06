@@ -1,6 +1,6 @@
 # This file contains various queries and adapters for feeding Jinja directly
 import math
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, date
 from typing import List
 from db_util.activity_load import ActivityLoad
 
@@ -141,9 +141,9 @@ def query_user_info(db, user_id) -> List:
     for ix in range(len(user_info)):
         if ix == 0:
             if user_info[ix] is not None:
-                td = datetime.timedelta(days=365.25)
+                td = timedelta(days=365.25)
                 # age = datetime.date.today().year - user_info[ix].year
-                age = datetime.date.today() - user_info[ix]
+                age = date.today() - user_info[ix]
                 age = math.trunc(age / td)
         if ix == 1:
             if user_info[ix] is not None:
