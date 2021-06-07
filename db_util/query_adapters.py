@@ -33,21 +33,31 @@ def normalize_value(k, v):
     Normalize a known value by converting as necessary (km to miles, etc)
     :param k: The key of the item to possibly convert
     :param v: The raw value of the item
-    :return: The normalized value of the item
+    :return: A tuple consisting of the normalized value of the item and the unit for the item
     """
     normalize_height_keys = ["total_ascent", "total_descent"]
     normalize_distance_keys = ["total_distance"]
     normalize_temp_keys = ["avg_temperature", "max_temperature"]
+    normalize_speed_keys = ["avg_speed", "max_speed"]
+    normalize_elapsed_keys = ["total_elapsed_time", "total_timer_time"]
     val = v
+    unit = ""
     if k in normalize_height_keys:
-        val = convert_height(v)
+        val = '{0:.2f}'.format(convert_height(v))
+        unit = "feet"
     elif k in normalize_distance_keys:
-        val = km_to_miles(v / 1000.0)
+        val = '{0:.2f}'.format(km_to_miles(v / 1000.0))
+        unit = "miles"
     elif k in normalize_temp_keys:
         val = convert_temp(v)
-    return val
-
-
+        unit = "deg F"
+    elif k in normalize_speed_keys:
+        val = '{0:.2f}'.format(km_to_miles(v / 1000.0) * 3600.0)
+        unit = "mph"
+    elif k in normalize_elapsed_keys:
+        val = str(timedelta(seconds=int(v)))
+        unit = "hh:mm:ss"
+    return val, unit
 
 
 def query_activity_list(db, user_id) -> List:
@@ -161,7 +171,9 @@ def query_activity_summary(db, user_id, activity_id) -> List:
     for k, v in sum.kvps.items():
         kv = []
         kv.append(k)
-        kv.append(normalize_value(k, v))
+        val, unit = normalize_value(k, v)
+        kv.append(val)
+        kv.append(unit)
         dat.append(kv)
     return dat
 

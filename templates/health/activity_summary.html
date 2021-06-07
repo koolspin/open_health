@@ -10,6 +10,7 @@
         <tr>
             <th>Data</th>
             <th>Value</th>
+            <th>Unit</th>
         </tr>
         </thead>
         <tbody>
@@ -17,6 +18,7 @@
             <tr>
                 <td class="{{ loop.cycle('odd', 'even') }}">{{ row[0] }}</td>
                 <td class="{{ loop.cycle('odd', 'even') }}">{{ row[1] }}</td>
+                <td class="{{ loop.cycle('odd', 'even') }}">{{ row[2] }}</td>
             </tr>
         {% endfor %}
         </tbody>
