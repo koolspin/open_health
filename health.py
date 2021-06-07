@@ -69,7 +69,7 @@ def activity_summary():
             user_id = session['user_id']
             activity_id = request.args.get('actid')
             db_conn = get_db()
-            dat = query_activity_summary(db_conn, user_id, activity_id)
+            dat = query_activity_summary(db_conn, activity_id)
             return render_template('health/activity_summary.html', data=dat)
     return render_template('health/activity_summary.html')
 

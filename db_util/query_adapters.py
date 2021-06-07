@@ -3,6 +3,7 @@ import math
 from datetime import datetime, timedelta, date
 from typing import List
 from db_util.activity_load import ActivityLoad
+from db_util.activity_models import ActivitySum
 
 
 def miles_to_km(miles):
@@ -49,7 +50,7 @@ def normalize_value(k, v):
         val = '{0:.2f}'.format(km_to_miles(v / 1000.0))
         unit = "miles"
     elif k in normalize_temp_keys:
-        val = convert_temp(v)
+        val = int(convert_temp(v))
         unit = "deg F"
     elif k in normalize_speed_keys:
         val = '{0:.2f}'.format(km_to_miles(v / 1000.0) * 3600.0)
@@ -157,7 +158,7 @@ def query_activity_detail(db, user_id, activity_id) -> List:
     return dat
 
 
-def query_activity_summary(db, user_id, activity_id) -> List:
+def query_activity_summary(db, activity_id) -> List:
     """
     Query the activity summary information for a given activity
     :param db: db connection
@@ -165,16 +166,19 @@ def query_activity_summary(db, user_id, activity_id) -> List:
     :param activity_id: ID of the activity
     :return: An array of data objects for the activity summary page
     """
+    act_sum = ActivitySum()
     act_load = ActivityLoad(db)
     sum = act_load.load_session_sum(activity_id)
     dat = []
-    for k, v in sum.kvps.items():
-        kv = []
-        kv.append(k)
-        val, unit = normalize_value(k, v)
-        kv.append(val)
-        kv.append(unit)
-        dat.append(kv)
+    for key in act_sum.keys:
+        v = sum.kvps.get(key)
+        if v is not None:
+            kv = []
+            kv.append(key)
+            val, unit = normalize_value(key, v)
+            kv.append(val)
+            kv.append(unit)
+            dat.append(kv)
     return dat
 
 

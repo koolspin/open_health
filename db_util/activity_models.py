@@ -62,10 +62,11 @@ class ActivitySum:
     """
     def __init__(self) -> None:
         super().__init__()
-        self.keys = ["start_time", "total_elapsed_time", "total_timer_time", "total_distance", "total_calories",
+        self.keys = ["start_time", "total_distance", "total_elapsed_time", "total_timer_time", "num_laps", "total_calories",
                      "avg_speed", "max_speed", "avg_power", "max_power", "total_ascent", "total_descent",
-                     "num_laps", "avg_heart_rate", "max_heart_rate", "avg_temperature", "max_temperature", "avg_cadence",
-                     "max_cadence", "total_training_effect", "total_anaerobic_training_effect", "total_strokes"]
+                     "avg_heart_rate", "max_heart_rate", "avg_cadence",
+                     "max_cadence", "total_training_effect", "total_anaerobic_training_effect", "total_strokes",
+                     "avg_temperature", "max_temperature"]
         self.id = 0
         self.activity_id = 0
         # session_num or lap_num depending on the target table
